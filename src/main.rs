@@ -1,5 +1,5 @@
-use std::io;
 use permutohedron;
+use std::io;
 
 fn main() {
     println!("Welcome to Tic, Tac, Toe!");
@@ -18,24 +18,24 @@ fn main() {
         );
         let mut input = String::new();
         io::stdin().read_line(&mut input).unwrap();
-		let input_num = input.trim().parse::<u8>().unwrap();
+        let input_num = input.trim().parse::<u8>().unwrap();
 
         board.change_cell(input_num);
-		match board.player {
-			Player::X => board.xs.push(input_num),
-			Player::O => board.os.push(input_num),
-		}
-		println!("\n");
+        match board.player {
+            Player::X => board.xs.push(input_num),
+            Player::O => board.os.push(input_num),
+        }
+        println!("\n");
         board.print();
-		if board.winner() {
-			println!("{:?} wins!", board.player);
-			break
-		}	
+        if board.winner() {
+            println!("{:?} wins!", board.player);
+            break;
+        }
         board.change_player();
     }
-	if !board.winner() {
-		println!("It's a draw!");
-	}	
+    if !board.winner() {
+        println!("It's a draw!");
+    }
 }
 
 enum State {
@@ -66,12 +66,10 @@ impl Cell {
 
     fn change(&mut self, player: &Player) {
         match self.state {
-            State::Empty => {
-                match player {
-                    Player::X => self.state = State::Exy,
-                    Player::O => self.state = State::Osy,
-                }
-            }
+            State::Empty => match player {
+                Player::X => self.state = State::Exy,
+                Player::O => self.state = State::Osy,
+            },
             _ => println!("That square is already filled!"),
         }
     }
@@ -80,8 +78,8 @@ impl Cell {
 struct Board {
     cells: Vec<Vec<Cell>>,
     player: Player,
-	xs: Vec<u8>,
-	os: Vec<u8>,
+    xs: Vec<u8>,
+    os: Vec<u8>,
 }
 
 impl Board {
@@ -104,15 +102,19 @@ impl Board {
                 },
             ])
         }
-        let player: Player;
-        if input == "X" || input == "x" {
-            player = Player::X;
+        let player = if input == "X" || input == "x" {
+            Player::X
         } else {
-            player = Player::O;
+            Player::O
+        };
+        let xs = Vec::new();
+        let os = Vec::new();
+        Board {
+            cells,
+            player,
+            xs,
+            os,
         }
-		let xs = Vec::new();
-		let os = Vec::new();
-        Board { cells, player, xs, os }
     }
 
     fn print(&self) {
@@ -148,40 +150,34 @@ impl Board {
         }
         false
     }
-	
- 	fn winner(&self) -> bool {
-		let mut checklist = match self.player {
-				Player::X => self.xs.clone(),
-				Player::O => self.os.clone(),
-		};
-		let mut permutations: Vec<Vec<u8>> = Vec::new();
-		match checklist.len() {
-			0 | 1 | 2 => false,
-			3 => {
-				if checklist.into_iter().sum::<u8>() == 15 {
-					true
-				} else {
-					false
-				}
-			},
-			4 | 5 => {				
-				permutohedron::heap_recursive(&mut checklist, |permutation| {
-					permutations.push(permutation.to_vec())
-				});
-				for mut x in permutations {
-					x.truncate(3);
-					if x.into_iter().sum::<u8>() == 15 {
-						return true
-					}
-				}
-				false
-			},
-			_ => true,
-		}
-	}
+
+    fn winner(&self) -> bool {
+        let mut checklist = match self.player {
+            Player::X => self.xs.clone(),
+            Player::O => self.os.clone(),
+        };
+        let mut permutations: Vec<Vec<u8>> = Vec::new();
+        match checklist.len() {
+            0 | 1 | 2 => false,
+            3 => checklist.into_iter().sum::<u8>() == 15,
+            4 | 5 => {
+                permutohedron::heap_recursive(&mut checklist, |permutation| {
+                    permutations.push(permutation.to_vec())
+                });
+                for mut x in permutations {
+                    x.truncate(3);
+                    if x.into_iter().sum::<u8>() == 15 {
+                        return true;
+                    }
+                }
+                false
+            }
+            _ => true,
+        }
+    }
 }
 
-fn printrow(row: &Vec<Cell>) {
+fn printrow(row: &[Cell]) {
     let mut nums = Vec::new();
     for cell in row {
         nums.push(cell.print());
